@@ -6,6 +6,7 @@ import sys
 import os
 import pandas as pd
 import glob
+import argparse
 from datetime import datetime,timedelta
 from LoggerInit import LoggerInit
 from threading import Thread
@@ -81,9 +82,19 @@ def th_execute_sql_file(sql_file):
 						
 			
 def main():
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-t','--mask',
+        help='Mask for the sql file list, for example *.sql',
+        type=str)
+	args = parser.parse_args()
+	if not args.mask:
+		mask=os.path.join(SQL_DIR,'*sql')
+	else:
+		mask=os.path.join(SQL_DIR,args.mask)
+
 	workers=[]
-	mask=os.path.join(SQL_DIR,'*sql')
-	for sql_file in glob.glob(mask):
+	file_list=glob.glob(mask)
+	for sql_file in file_list:
 		worker = Thread(target=th_execute_sql_file,args=(sql_file,))
 		worker.setDaemon(True)
 		worker.start()
