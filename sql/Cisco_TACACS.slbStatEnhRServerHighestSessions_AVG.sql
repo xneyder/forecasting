@@ -7,7 +7,8 @@ with pm_data as
 (
   select /*+ materialize */ trunc(trunc(sysdate,'MM')-1,'MM') DATETIME, IP_NE_NAME,
   AVG(nvl(HIGHEST_SESSIONS_AVG,0)) KPI,
-  MAX(ENTRIES) ENTRIES
+  MAX(ENTRIES) ENTRIES_MAX,
+  AVG(ENTRIES) ENTRIES_AVG
   from RADWARE_IP.RAD_IPNE_REALSERVSES_MO@KNOX_IPHLXP
   where (IP_NE_NAME like '%-tacacslb-%')
   and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
@@ -27,8 +28,8 @@ null PERCENTILE_USED,
 AVG(KPI),
 'Counter' KPI_UNITS,
 300 RAW_POLLING_DURATION,
-max(ENTRIES) PERIOD_COUNT,
-count(*) AVG_INSTANCE_COUNT,
+max(ENTRIES_MAX) PERIOD_COUNT,
+avg(ENTRIES_AVG) AVG_INSTANCE_COUNT,
 sysdate REC_CREATE_DATE,
 sysdate LAST_UPDATE_DATE
 from pm_data
