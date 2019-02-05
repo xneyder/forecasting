@@ -7,7 +7,8 @@ with pm_data as
 (
         select /*+ materialize */ DATETIME,
         SUM(nvl(CFW_CONNECTION_STAT_COUNT,0)) KPI,
-        count(*) INSTANCE_COUNT,
+        count(distinct DATETIME) DATETIME_COUNT,
+        count(distinct IP_NE_NAME) NE_COUNT,
         'Sch' LOCATION_GROUP
         from CISCO_ENV.CIS_ENV_FWCONN_5M
         where IP_NE_NAME like '%-ltefw-%'
@@ -17,7 +18,8 @@ with pm_data as
         UNION
         select /*+ materialize */ DATETIME,
         SUM(nvl(CFW_CONNECTION_STAT_COUNT,0)) KPI,
-        count(*) INSTANCE_COUNT,
+        count(distinct DATETIME) DATETIME_COUNT,
+        count(distinct IP_NE_NAME) NE_COUNT,
         'Atl' LOCATION_GROUP
         from CISCO_ENV.CIS_ENV_FWCONN_5M
         where IP_NE_NAME like '%-ltefw-%'
@@ -27,7 +29,8 @@ with pm_data as
         UNION
         select /*+ materialize */ DATETIME,
         SUM(nvl(CFW_CONNECTION_STAT_COUNT,0)) KPI,
-        count(*) INSTANCE_COUNT,
+        count(distinct DATETIME) DATETIME_COUNT,
+        count(distinct IP_NE_NAME) NE_COUNT,
         'Sch+Atl' LOCATION_GROUP
         from CISCO_ENV.CIS_ENV_FWCONN_5M
         where IP_NE_NAME like '%-ltefw-%'
@@ -49,8 +52,8 @@ LOCATION_GROUP,
 PERCENTILE_CONT(0.95) within group (order by KPI) KPI_VALUE,
 'Counter32' KPI_UNITS,
 300 RAW_POLLING_DURATION,
-count(DATETIME) PERIOD_COUNT,
-avg(INSTANCE_COUNT) AVG_INSTANCE_COUNT,
+count(DATETIME_COUNT) PERIOD_COUNT,
+avg(NE_COUNT) AVG_INSTANCE_COUNT,
 sysdate REC_CREATE_DATE,
 sysdate LAST_UPDATE_DATE
 from pm_data

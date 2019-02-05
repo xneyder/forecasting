@@ -7,7 +7,8 @@ with pm_data as
 (
         select /*+ materialize */ DATETIME,
         SUM(nvl(SBGSIPREGSTATREGUSERGAUGE,0)) KPI,
-        count(*) INSTANCE_COUNT,
+	count(distinct DATETIME) DATETIME_COUNT,
+        count(distinct SBG_NAME) NE_COUNT,
         'SBG-1' LOCATION_GROUP
         from ERICSSON_SBG.ERI_SBG_PROXYREGV6_15M
         where (SBG_NAME like '%-sbg-01%')
@@ -16,7 +17,8 @@ with pm_data as
         UNION
         select /*+ materialize */ DATETIME,
         SUM(nvl(SBGSIPREGSTATREGUSERGAUGE,0)) KPI,
-        count(*) INSTANCE_COUNT,
+	count(distinct DATETIME) DATETIME_COUNT,
+        count(distinct SBG_NAME) NE_COUNT,
         'SBG-2' LOCATION_GROUP
         from ERICSSON_SBG.ERI_SBG_PROXYREGV6_15M
         where (SBG_NAME like '%-sbg-02%')
@@ -38,8 +40,8 @@ LOCATION_GROUP,
 PERCENTILE_CONT(0.97) within group (order by KPI) KPI_VALUE,
 'counter' KPI_UNITS,
 300 RAW_POLLING_DURATION,
-count(DATETIME) PERIOD_COUNT,
-avg(INSTANCE_COUNT) AVG_INSTANCE_COUNT,
+sum(DATETIME_COUNT) PERIOD_COUNT,
+avg(NE_COUNT) AVG_INSTANCE_COUNT,
 sysdate REC_CREATE_DATE,
 sysdate LAST_UPDATE_DATE
 from pm_data

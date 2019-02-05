@@ -2,39 +2,48 @@ delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
 where SMA_NAME='100G LTE FW'
 and KPI_NAME='Total Throughput OUT'
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
+--CREATE TABLE
+CREATE table AUDIT_DB.GLTEFW_2(
+DATETIME timestamp,
+KPI number(23,6),
+DATETIME_COUNT number(13),
+NE_COUNT number(13),
+LOCATION_GROUP varchar2(55)
+);
+INSERT INTO AUDIT_DB.GLTEFW_2
+select /*+ materialize */ DATETIME,
+SUM(nvl(IF_OUT_THROUGHPUT,0)) KPI,
+count(distinct DATETIME) DATETIME_COUNT,
+count(distinct IP_NE_NAME) NE_COUNT,
+'Sch' LOCATION_GROUP
+from ALL_IP.STD_IPIF_5M
+where IP_NE_NAME like '%-ltefw-%'
+and (IP_NE_NAME like 'ilscha%')
+and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
+group by DATETIME
+UNION
+select /*+ materialize */ DATETIME,
+SUM(nvl(IF_OUT_THROUGHPUT,0)) KPI,
+count(distinct DATETIME) DATETIME_COUNT,
+count(distinct IP_NE_NAME) NE_COUNT,
+'Atl' LOCATION_GROUP
+from ALL_IP.STD_IPIF_5M
+where IP_NE_NAME like '%-ltefw-%'
+and (IP_NE_NAME like 'gaatla%')
+and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
+group by DATETIME
+UNION
+select /*+ materialize */ DATETIME,
+SUM(nvl(IF_OUT_THROUGHPUT,0)) KPI,
+count(distinct DATETIME) DATETIME_COUNT,
+count(distinct IP_NE_NAME) NE_COUNT,
+'Sch+Atl' LOCATION_GROUP
+from ALL_IP.STD_IPIF_5M
+where IP_NE_NAME like '%-ltefw-%'
+and (IP_NE_NAME like 'ilscha%' or IP_NE_NAME like 'gaatla%')
+and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
+group by DATETIME;
 INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
-with pm_data as
-(
-        select /*+ materialize */ DATETIME,
-        SUM(nvl(IF_OUT_THROUGHPUT,0)) KPI,
-        count(*) INSTANCE_COUNT,
-        'Sch' LOCATION_GROUP
-        from ALL_IP.STD_IPIF_5M
-        where IP_NE_NAME like '%-ltefw-%'
-        and (IP_NE_NAME like 'ilscha%')
-        and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
-        group by DATETIME
-        UNION
-        select /*+ materialize */ DATETIME,
-        SUM(nvl(IF_OUT_THROUGHPUT,0)) KPI,
-        count(*) INSTANCE_COUNT,
-        'Atl' LOCATION_GROUP
-        from ALL_IP.STD_IPIF_5M
-        where IP_NE_NAME like '%-ltefw-%'
-        and (IP_NE_NAME like 'gaatla%')
-        and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
-        group by DATETIME
-        UNION
-        select /*+ materialize */ DATETIME,
-        SUM(nvl(IF_OUT_THROUGHPUT,0)) KPI,
-        count(*) INSTANCE_COUNT,
-        'Sch+Atl' LOCATION_GROUP
-        from ALL_IP.STD_IPIF_5M
-        where IP_NE_NAME like '%-ltefw-%'
-        and (IP_NE_NAME like 'ilscha%' or IP_NE_NAME like 'gaatla%')
-        and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
-        group by DATETIME
-)
 select
 trunc(datetime,'MM') PERIOD_DATE,
 '100G LTE FW' SMA_NAME,
@@ -47,12 +56,12 @@ LOCATION_GROUP,
 'PERC' MATH_AGG_TYPE,
 95 PERCENTILE_USED,
 PERCENTILE_CONT(0.95) within group (order by KPI) KPI_VALUE,
-'N/A – Derived' KPI_UNITS,
+'N/A - Derived' KPI_UNITS,
 300 RAW_POLLING_DURATION,
-count(DATETIME) PERIOD_COUNT,
-avg(INSTANCE_COUNT) AVG_INSTANCE_COUNT,
+sum(DATETIME_COUNT) PERIOD_COUNT,
+avg(NE_COUNT) AVG_INSTANCE_COUNT,
 sysdate REC_CREATE_DATE,
 sysdate LAST_UPDATE_DATE
-from pm_data
+from AUDIT_DB.GLTEFW_2
 group by trunc(datetime,'MM'), LOCATION_GROUP;
-
+drop table AUDIT_DB.GLTEFW_2;
