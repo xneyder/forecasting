@@ -1,15 +1,15 @@
-delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
+delete from SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 where SMA_NAME='LogRhythm'
 and KPI_NAME='Rate Logs Recevied/Sec'
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
-INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
+INSERT INTO SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 with pm_data as
 (
   select /*+ materialize */ trunc(trunc(sysdate,'MM')-1,'MM') DATETIME, IP_NE_NAME,
   PERCENTILE_CONT(0.95) within group (order by nvl(LOG_MESSAGES_RECEIVED_PER_SEC,0)) KPI,
   SUM(ENTRIES) ENTRIES_MAX,
   AVG(ENTRIES) ENTRIES_AVG
-  from LOGRHYTHM_IP.LOGR_IPNE_ENSRV_HR@KNOX_IPHLXP
+  from LOGRHYTHM_IP.LOGR_IPNE_ENSRV_HR
   where DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
   group by IP_NE_NAME
 )

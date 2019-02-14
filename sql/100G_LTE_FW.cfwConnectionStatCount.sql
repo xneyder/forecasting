@@ -1,8 +1,8 @@
-delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
+delete from SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 where SMA_NAME='100G LTE FW'
 and KPI_NAME='cfwConnectionStatCount'
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
-INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
+INSERT INTO SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 with pm_data as
 (
         select /*+ materialize */ DATETIME,

@@ -1,15 +1,15 @@
-delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
+delete from SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 where SMA_NAME='Cisco TACACS'
 and KPI_NAME='slbStatSpMaintCurBindings - AVG'
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
-INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
+INSERT INTO SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 with pm_data as
 (
   select /*+ materialize */ trunc(trunc(sysdate,'MM')-1,'MM') DATETIME, IP_NE_NAME,
   AVG(nvl(SLB_STAT_SUR64,0)) KPI,
   MAX(ENTRIES) ENTRIES_MAX,
   AVG(ENTRIES) ENTRIES_AVG
-  from RADWARE_IP.RAD_IPNE_SLBSTAT_MO@KNOX_IPHLXP
+  from RADWARE_IP.RAD_IPNE_SLBSTAT_MO
   where (IP_NE_NAME like '%-tacacslb-%')
   and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
     group by IP_NE_NAME

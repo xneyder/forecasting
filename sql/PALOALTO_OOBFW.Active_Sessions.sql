@@ -1,9 +1,9 @@
 --PALOALTO_OOBFW - Active Sessions
-delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD 
+delete from SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 where SMA_NAME='PALOALTO_OOBFW' 
 and KPI_NAME='Active Sessions' 
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
-INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
+INSERT INTO SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 with pm_data as
 (
 	select /*+ materialize */ DATETIME, IP_NE_NAME, 

@@ -1,9 +1,9 @@
 --EPCR DNS
-delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD 
+delete from SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 where SMA_NAME='EPCR DNS' 
 and KPI_NAME='DNS Success - EPCR' 
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
-INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
+INSERT INTO SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 with pm_data as
 (
 	select /*+ materialize */ DATETIME, 

@@ -1,4 +1,4 @@
-delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD 
+delete from SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 where SMA_NAME='PALOALTO_OOBFW' 
 and KPI_NAME='Interface Throughput' 
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
@@ -18,7 +18,7 @@ from ALL_IP.STD_IPIF_5M
 where IP_NE_NAME like '%-oobfw-%'
 and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
 group by DATETIME, IP_NE_NAME;
-INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
+INSERT INTO SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
 select 
 trunc(datetime,'MM') PERIOD_DATE,
 'PALOALTO_OOBFW' SMA_NAME,
