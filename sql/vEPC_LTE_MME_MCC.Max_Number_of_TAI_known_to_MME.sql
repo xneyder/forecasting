@@ -7,8 +7,9 @@ with pm_data as
 (
         select /*+ materialize */ DATETIME, VMME_NAME,
         SUM(nvl(S1_PEAKNBRTAI,0)) KPI,
-        count(*) INSTANCE_COUNT
-        from AFFIRMED_VMME.AFF_VMME_SRV_NODAL_S1_15M
+        count(distinct DATETIME) DATETIME_COUNT,
+        count(distinct VMME_NAME) NE_COUNT
+        from AFFIRMED_VMME.AFF_VMME_SRV_NODAL_S1_5M@KNOX_IPHLXP
         where DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
         group by DATETIME, VMME_NAME
 )
@@ -26,8 +27,8 @@ trunc(datetime,'MM') PERIOD_DATE,
 PERCENTILE_CONT(0.90) within group (order by KPI) KPI_VALUE,
 'Max' KPI_UNITS,
 900 RAW_POLLING_DURATION,
-count(VMME_NAME) PERIOD_COUNT,
-avg(INSTANCE_COUNT) AVG_INSTANCE_COUNT,
+sum(DATETIME_COUNT) PERIOD_COUNT,
+avg(NE_COUNT) AVG_INSTANCE_COUNT,
 sysdate REC_CREATE_DATE,
 sysdate LAST_UPDATE_DATE
 from pm_data

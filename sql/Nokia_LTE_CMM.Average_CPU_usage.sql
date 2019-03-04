@@ -7,7 +7,8 @@ with pm_data as
 (
         select /*+ materialize */ DATETIME, VCMM_NAME,
         AVG(NVL(VS_AVECPUUSAGE,0)) KPI,
-        count(*) INSTANCE_COUNT
+        count(distinct DATETIME) DATETIME_COUNT,
+        count(distinct VCMM_NAME) NE_COUNT
         from NOKIA_VCMM.NOK_VCMM_CPU_USAGE_15M
         where DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
         group by DATETIME, VCMM_NAME
@@ -26,8 +27,8 @@ trunc(datetime,'MM') PERIOD_DATE,
 PERCENTILE_CONT(0.97) within group (order by KPI) KPI_VALUE,
 '%' KPI_UNITS,
 900 RAW_POLLING_DURATION,
-count(VCMM_NAME) PERIOD_COUNT,
-avg(INSTANCE_COUNT) AVG_INSTANCE_COUNT,
+sum(DATETIME_COUNT) PERIOD_COUNT,
+avg(NE_COUNT) AVG_INSTANCE_COUNT,
 sysdate REC_CREATE_DATE,
 sysdate LAST_UPDATE_DATE
 from pm_data
