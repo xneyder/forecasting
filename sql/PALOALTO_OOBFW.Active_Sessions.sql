@@ -1,25 +1,25 @@
 --PALOALTO_OOBFW - Active Sessions
-delete from SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
-where SMA_NAME='PALOALTO_OOBFW' 
+delete from SMA_HLX.SMA_OPERATIONS@KNOXHLXPRD
+where SMA_NAME='Security SMA' 
 and KPI_NAME='Active Sessions' 
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
-INSERT INTO SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
+INSERT INTO SMA_HLX.SMA_OPERATIONS@KNOXHLXPRD
 with pm_data as
 (
 	select /*+ materialize */ DATETIME, IP_NE_NAME, 
 	SUM(nvl(PAN_SESSION_ACTIVE,0)) KPI,
-	count(*) INSTANCE_COUNT
-	from PALOALTO_IP.PAN_IPNE_SESSIONSTAT_5M 
+	count(*) ENTRIES
+	from PALOALTO_IP.PAN_IPNE_SESSIONSTAT_5M@KNOX_IPHLXP 
 	where IP_NE_NAME like '%-oobfw-%'
 	and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
   	group by DATETIME, IP_NE_NAME
 ) 
 select 
 trunc(datetime,'MM') PERIOD_DATE,
-'PALOALTO_OOBFW' SMA_NAME,
-'' REPORT_GROUP,
-'Core' REGION_GROUP,
-'IP_NE_NAME' LOCATION_GROUP,
+'Security SMA' SMA_NAME,
+'PALOALTO' REPORT_GROUP,
+'PALOALTO_OOBFW' REGION_GROUP,
+IP_NE_NAME LOCATION_GROUP,
 'Active Sessions' KPI_NAME,
 'panSessionActive' INDICATOR_,
 'MM' TIME_AGG_TYPE,
@@ -28,9 +28,9 @@ trunc(datetime,'MM') PERIOD_DATE,
 PERCENTILE_CONT(0.95) within group (order by KPI) KPI_VALUE,
 'Counts' KPI_UNITS,
 300 RAW_POLLING_DURATION,
-count(IP_NE_NAME) PERIOD_COUNT,
-avg(INSTANCE_COUNT) AVG_INSTANCE_COUNT,
+count(distinct DATETIME) PERIOD_COUNT,
+avg(ENTRIES)/max(ENTRIES) AVG_INSTANCE_COUNT,
 sysdate REC_CREATE_DATE,
 sysdate LAST_UPDATE_DATE
 from pm_data
-group by trunc(datetime,'MM');
+group by trunc(datetime,'MM'),IP_NE_NAME;

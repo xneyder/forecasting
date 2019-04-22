@@ -1,15 +1,15 @@
 delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
 where SMA_NAME='BMC CMAS'
-and KPI_NAME='Number of CDMA Network Elements'
+and KPI_NAME='Number of Cells'
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
 INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
 with pm_data as
 (
         select /*+ materialize */ DATETIME, CMAS_NAME,
-        SUM(nvl(nvl(NUM_CDMA_NE_MAX,0)) KPI,
+        SUM(nvl(NUM_CELLS_MAX,0)) KPI,
         count(distinct DATETIME) DATETIME_COUNT,
         count(distinct CMAS_NAME) NE_COUNT
-        from ALU_CMAS.BMC_CMAS_SMPROXY_MO
+        from ALU_CMAS.BMC_CMAS_SMPROXY_5M@KNOX_IPHLXP
         where DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
         group by DATETIME, CMAS_NAME
 )
@@ -19,15 +19,15 @@ trunc(datetime,'MM') PERIOD_DATE,
 '' REPORT_GROUP,
 'Core' REGION_GROUP,
 'IP_NE_NAME' LOCATION_GROUP,
-'Number of CDMA Network Elements' KPI_NAME,
-'pxcSMProxyletprovNumCdmaNe' INDICATOR_,
+'Number of Cells' KPI_NAME,
+'pxcSMProxyletprovNumCells' INDICATOR_,
 'MM' TIME_AGG_TYPE,
 'MAX' MATH_AGG_TYPE,
-'' PERCENTILE_USED,
-PERCENTILE_CONT(0.95) within group (order by KPI) KPI_VALUE,
+null PERCENTILE_USED,
+MAX(KPI),
 '#' KPI_UNITS,
 300 RAW_POLLING_DURATION,
-sum(DATETIME_COUNT) PERIOD_COUNT,
+max(DATETIME_COUNT) PERIOD_COUNT,
 avg(NE_COUNT) AVG_INSTANCE_COUNT,
 sysdate REC_CREATE_DATE,
 sysdate LAST_UPDATE_DATE

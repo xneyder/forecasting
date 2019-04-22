@@ -1,16 +1,17 @@
 --EPCR DNS
-delete from SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
-where SMA_NAME='EPCR DNS' 
+delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
+where SMA_NAME='Security SMA' 
+and REPORT_GROUP='RCC_DNS'
 and KPI_NAME='DNS Success - EPCR' 
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
-INSERT INTO SMA_HLX.SMA_SUMMARY@SCHAHLXPRD
+INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
 with pm_data as
 (
 	select /*+ materialize */ DATETIME, 
 	SUM(NVL(BCN_DNS_STAT_SRV_QRY_SUCCESS / (SYS_UP_TIME_D/100),0)) KPI,
 	count(*) INSTANCE_COUNT,
 	'Sch+Atl' LOCATION_GROUP
-	from BLUECAT_IPAM.BLU_IP_STATSERV_5M 
+	from BLUECAT_IPAM.BLU_IP_STATSERV_5M@KNOX_IPHLXP 
 	where IP_NE_NAME like '%-epcrdns-%'
 	and (IP_NE_NAME like 'ilscha%' or IP_NE_NAME like 'gaatla%')
 	and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
@@ -20,7 +21,7 @@ with pm_data as
 	SUM(NVL(BCN_DNS_STAT_SRV_QRY_SUCCESS / (SYS_UP_TIME_D/100),0)) KPI,
 	count(*) INSTANCE_COUNT,
 	'Sch+San' LOCATION_GROUP
-	from BLUECAT_IPAM.BLU_IP_STATSERV_5M 
+	from BLUECAT_IPAM.BLU_IP_STATSERV_5M@KNOX_IPHLXP 
 	where IP_NE_NAME like '%-epcrdns-%'
 	and (IP_NE_NAME like 'ilscha%' or IP_NE_NAME like 'casant%')
 	and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
@@ -30,7 +31,7 @@ with pm_data as
 	SUM(NVL(BCN_DNS_STAT_SRV_QRY_SUCCESS / (SYS_UP_TIME_D/100),0)) KPI,
 	count(*) INSTANCE_COUNT,
 	'Ash+Atl' LOCATION_GROUP
-	from BLUECAT_IPAM.BLU_IP_STATSERV_5M 
+	from BLUECAT_IPAM.BLU_IP_STATSERV_5M@KNOX_IPHLXP 
 	where IP_NE_NAME like '%-epcrdns-%'
 	and (IP_NE_NAME like 'vaashb%' or IP_NE_NAME like 'gaatla%')
 	and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
@@ -38,9 +39,9 @@ with pm_data as
 ) 
 select 
 trunc(datetime,'MM') PERIOD_DATE,
-'EPCR DNS' SMA_NAME,
+'Security SMA' SMA_NAME,
 'RCC_DNS' REPORT_GROUP,
-'Core' REGION_GROUP,
+'EPCR DNS' REGION_GROUP,
 LOCATION_GROUP,
 'DNS Success - EPCR' KPI_NAME,
 'bcnDnsStatSrvQrySuccess' INDICATOR_,
@@ -50,7 +51,7 @@ LOCATION_GROUP,
 PERCENTILE_CONT(0.95) within group (order by KPI) KPI_VALUE,
 'Counts' KPI_UNITS,
 300 RAW_POLLING_DURATION,
-count(DATETIME) PERIOD_COUNT,
+count(distinct DATETIME) PERIOD_COUNT,
 avg(INSTANCE_COUNT) AVG_INSTANCE_COUNT,
 sysdate REC_CREATE_DATE,
 sysdate LAST_UPDATE_DATE

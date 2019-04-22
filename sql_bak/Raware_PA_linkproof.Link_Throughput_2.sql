@@ -10,7 +10,7 @@ with pm_data as
         sum(ENTRIES) ENTRIES,
         count(distinct IP_NE_NAME) NE_COUNT,
         'Sch' LOCATION_GROUP
-        from ALL_IP.STD_IPIF_HR
+        from ALL_IP.STD_IPIF_HR@KNOX_IPHLXP
         where (IP_NE_NAME like '%-mdfwlbin-%' OR IP_NE_NAME like '%-mdfwlbout-%' OR IP_NE_NAME like '%-mdfw-%')
 		AND IP_NE_NAME like 'ilscha%'
         and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
@@ -31,7 +31,7 @@ with pm_data as
 select
 trunc(datetime,'MM') PERIOD_DATE,
 'Raware PA linkproof' SMA_NAME,
-'' REPORT_GROUP,
+' ' REPORT_GROUP,
 'Core' REGION_GROUP,
 LOCATION_GROUP,
 'Link Throughput 2' KPI_NAME,
