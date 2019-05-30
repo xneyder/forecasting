@@ -2,20 +2,22 @@ delete from SMA_HLX.SMA_OPERATIONS@KNOXHLXPRD
 where SMA_NAME='National Access Engineering SMA'
 and KPI_NAME='% CPU Utilization'
 and REPORT_GROUP='Border_Routers P_Routers'
+and REGION_GROUP='Core'
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
+
 INSERT INTO SMA_HLX.SMA_OPERATIONS@KNOXHLXPRD
-with pm_data as
+with pm_data as 
 (
         select /*+ materialize */ DATETIME, IP_NE_NAME,
         SUM(nvl(SGI_CPU_USAGE,0)) KPI,
 	count(*) ENTRIES
-        from ALU_IP.ALU_IPNE_SYSTEM_STAT_5M@KNOX_IPHLXP
+        from ALU_IP.ALU_IPNE_SYSTEM_STAT_5M@IPHLXP
         where DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
         and (IP_NE_NAME like '%-border-%' or IP_NE_NAME like '%-p-%')
         group by DATETIME, IP_NE_NAME
 )
 select
-trunc(datetime,'MM') PERIOD_DATE,
+trunc(DATETIME,'MM') PERIOD_DATE,
 'National Access Engineering SMA' SMA_NAME,
 'Border_Routers P_Routers' REPORT_GROUP,
 'Core' REGION_GROUP,

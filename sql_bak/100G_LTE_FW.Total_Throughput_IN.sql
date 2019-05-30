@@ -2,6 +2,7 @@ delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
 where SMA_NAME='100G LTE FW'
 and KPI_NAME='Total Throughput IN'
 AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
+
 --CREATE TABLE
 CREATE table AUDIT_DB.GLTEFW_1(
 DATETIME timestamp,
@@ -10,6 +11,7 @@ DATETIME_COUNT number(13),
 NE_COUNT number(13),
 LOCATION_GROUP varchar2(55)
 );
+
 INSERT INTO AUDIT_DB.GLTEFW_1
 select /*+ materialize */ DATETIME,
 SUM(nvl(IF_IN_THROUGHPUT,0)) KPI,
@@ -43,7 +45,6 @@ where IP_NE_NAME like '%-ltefw-%'
 and (IP_NE_NAME like 'ilscha%' or IP_NE_NAME like 'gaatla%')
 and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
 group by DATETIME
-
 UNION
 select /*+ materialize */ DATETIME,
 SUM(nvl(IF_IN_THROUGHPUT,0)) KPI,
@@ -88,6 +89,7 @@ where IP_NE_NAME like '%-ltefw-%'
 and (IP_NE_NAME like 'vaashb%')
 and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
 group by DATETIME;
+
 INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
 select
 trunc(datetime,'MM') PERIOD_DATE,

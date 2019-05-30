@@ -1,44 +1,48 @@
+-- PALOALTO_OOBFW.Interface_Throughput.sql
 delete from SMA_HLX.SMA_OPERATIONS@KNOXHLXPRD
-where SMA_NAME='Security SMA' 
-and REPORT_GROUP='PALOALTO'
-and KPI_NAME='Interface Throughput' 
-AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
+ where SMA_NAME='Security SMA'
+   and REPORT_GROUP='PALOALTO'
+   and KPI_NAME='Interface Throughput'
+   AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
+   
 --CREATE TABLE
---CREATE table AUDIT_DB.PALOALTO_OOBFW@KNOXHLXPRD (
---DATETIME timestamp,
---IP_NE_NAME varchar2(55),
---KPI number(13,3),
---INSTANCE_COUNT number(13)
---);
-delete from AUDIT_DB.PALOALTO_OOBFW@KNOXHLXPRD;
-INSERT INTO AUDIT_DB.PALOALTO_OOBFW@KNOXHLXPRD
-select DATETIME, 
-IP_NE_NAME, 
-SUM(nvl(IF_THROUGHPUT,0)) KPI,
-count(*) ENTRIES
-from ALL_IP.STD_IPIF_5M@KNOX_IPHLXP 
-where IP_NE_NAME like '%-oobfw-%'
-and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
-group by DATETIME, IP_NE_NAME;
+CREATE table AUDIT_DB.PALOALTO_OOBFW (
+	DATETIME timestamp,
+	IP_NE_NAME varchar2(255),
+	KPI number(23,6),
+	ENTRIES number(13)
+);
+
+INSERT INTO AUDIT_DB.PALOALTO_OOBFW
+ select	DATETIME,
+	IP_NE_NAME,
+	SUM(nvl(IF_THROUGHPUT,0)) KPI,
+	count(*) ENTRIES
+   from ALL_IP.STD_IPIF_5M@KNOX_IPHLXP
+  where IP_NE_NAME like '%-oobfw-%'
+    and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
+  group by DATETIME, IP_NE_NAME;
+ 
 INSERT INTO SMA_HLX.SMA_OPERATIONS@KNOXHLXPRD
-select 
-trunc(datetime,'MM') PERIOD_DATE,
-'Security SMA' SMA_NAME,
-'PALOALTO' REPORT_GROUP,
-'PALOALTO_OOBFW' REGION_GROUP,
-IP_NE_NAME LOCATION_GROUP,
-'Interface Throughput' KPI_NAME,
-'IF_THROUGHPUT' INDICATOR_,
-'MM' TIME_AGG_TYPE,
-'PERC' MATH_AGG_TYPE,
-95 PERCENTILE_USED,
-PERCENTILE_CONT(0.95) within group (order by KPI) KPI_VALUE,
-'Counts' KPI_UNITS,
-300 RAW_POLLING_DURATION,
-count(distinct DATETIME) PERIOD_COUNT,
-avg(ENTRIES)/max(ENTRIES) AVG_INSTANCE_COUNT,
-sysdate REC_CREATE_DATE,
-sysdate LAST_UPDATE_DATE
-from AUDIT_DB.PALOALTO_OOBFW@KNOXHLXPRD
-group by trunc(datetime,'MM'),IP_NE_NAME;
---drop table AUDIT_DB.PALOALTO_OOBFW@KNOXHLXPRD;
+select
+	trunc(datetime,'MM') PERIOD_DATE,
+	'Security SMA' SMA_NAME,
+	'PALOALTO' REPORT_GROUP,
+	'PALOALTO_OOBFW' REGION_GROUP,
+	IP_NE_NAME LOCATION_GROUP,
+	'Interface Throughput' KPI_NAME,
+	'IF_THROUGHPUT' INDICATOR_,
+	'MM' TIME_AGG_TYPE,
+	'PERC' MATH_AGG_TYPE,
+	95 PERCENTILE_USED,
+	PERCENTILE_CONT(0.95) within group (order by KPI) KPI_VALUE,
+	'Counts' KPI_UNITS,
+	300 RAW_POLLING_DURATION,
+	count(distinct DATETIME) PERIOD_COUNT,
+	avg(ENTRIES)/max(ENTRIES) AVG_INSTANCE_COUNT,
+	sysdate REC_CREATE_DATE,
+	sysdate LAST_UPDATE_DATE
+  from AUDIT_DB.PALOALTO_OOBFW
+ group by trunc(datetime,'MM'),IP_NE_NAME;
+ 
+drop table AUDIT_DB.PALOALTO_OOBFW;

@@ -1,22 +1,19 @@
 delete from SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
  where SMA_NAME='Security SMA'
-   and REPORT_GROUP='100G LTE FW'
    and KPI_NAME='Total Throughput IN'
+   and REPORT_GROUP='100G LTE FW'
    AND PERIOD_DATE=trunc(trunc(sysdate,'MM')-1,'MM');
 
---CREATE TABLE (only run it in Production IP DB)
---CREATE table AUDIT_DB.GLTEFW_1(
---	DATETIME timestamp,
---	KPI number(23,6),
---	DATETIME_COUNT number(13),
---	NE_COUNT number(13),
---	LOCATION_GROUP varchar2(55)
---	);
+--CREATE TABLE in Production only
+CREATE table AUDIT_DB.GLTEFW_1(
+	DATETIME timestamp,
+	KPI number(23,6),
+	DATETIME_COUNT number(13),
+	NE_COUNT number(13),
+	LOCATION_GROUP varchar2(55)
+	);
 
--- Only run for test DB
-delete from AUDIT_DB.GLTEFW_1@KNOX_IPHLXP;
-
-INSERT INTO AUDIT_DB.GLTEFW_1@KNOX_IPHLXP
+INSERT INTO AUDIT_DB.GLTEFW_1
  select /*+ materialize */ DATETIME,
 	SUM(nvl(IF_IN_THROUGHPUT,0)) KPI,
 	count(distinct DATETIME) DATETIME_COUNT,
@@ -25,7 +22,7 @@ INSERT INTO AUDIT_DB.GLTEFW_1@KNOX_IPHLXP
    from ALL_IP.STD_IPIF_5M@KNOX_IPHLXP
   where IP_NE_NAME like '%-ltefw-%'
     and (IP_NE_NAME like 'ilscha%')
-    and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
+    and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
   group by DATETIME
  UNION
  select /*+ materialize */ DATETIME,
@@ -36,7 +33,7 @@ INSERT INTO AUDIT_DB.GLTEFW_1@KNOX_IPHLXP
    from ALL_IP.STD_IPIF_5M@KNOX_IPHLXP
   where IP_NE_NAME like '%-ltefw-%'
     and (IP_NE_NAME like 'gaatla%')
-    and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
+    and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
   group by DATETIME
  UNION
  select /*+ materialize */ DATETIME,
@@ -47,7 +44,7 @@ INSERT INTO AUDIT_DB.GLTEFW_1@KNOX_IPHLXP
    from ALL_IP.STD_IPIF_5M@KNOX_IPHLXP
   where IP_NE_NAME like '%-ltefw-%'
     and (IP_NE_NAME like 'ilscha%' or IP_NE_NAME like 'gaatla%')
-    and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
+    and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
   group by DATETIME
  UNION
  select /*+ materialize */ DATETIME,
@@ -58,7 +55,7 @@ INSERT INTO AUDIT_DB.GLTEFW_1@KNOX_IPHLXP
    from ALL_IP.STD_IPIF_5M@KNOX_IPHLXP
   where IP_NE_NAME like '%-ltefw-%'
     and (IP_NE_NAME like 'ilscha%' or IP_NE_NAME like 'casanj%')
-    and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
+    and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
   group by DATETIME
  UNION
  select /*+ materialize */ DATETIME,
@@ -69,7 +66,7 @@ INSERT INTO AUDIT_DB.GLTEFW_1@KNOX_IPHLXP
    from ALL_IP.STD_IPIF_5M@KNOX_IPHLXP
   where IP_NE_NAME like '%-ltefw-%'
     and (IP_NE_NAME like 'gaatla%' or IP_NE_NAME like 'vaashb%')
-    and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
+    and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
   group by DATETIME
  UNION
  select /*+ materialize */ DATETIME,
@@ -80,7 +77,7 @@ INSERT INTO AUDIT_DB.GLTEFW_1@KNOX_IPHLXP
    from ALL_IP.STD_IPIF_5M@KNOX_IPHLXP
   where IP_NE_NAME like '%-ltefw-%'
     and (IP_NE_NAME like 'casanj%')
-    and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
+    and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
   group by DATETIME
  UNION
  select /*+ materialize */ DATETIME,
@@ -91,7 +88,7 @@ INSERT INTO AUDIT_DB.GLTEFW_1@KNOX_IPHLXP
    from ALL_IP.STD_IPIF_5M@KNOX_IPHLXP
   where IP_NE_NAME like '%-ltefw-%'
     and (IP_NE_NAME like 'vaashb%')
-    and DATETIME >= trunc(trunc(sysdate,'MM')-1,'MM') and DATETIME < trunc(sysdate,'MM')
+    and DATETIME >= '<start_date>' and DATETIME <= '<end_date>'
   group by DATETIME;
 
 INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
@@ -113,7 +110,7 @@ INSERT INTO SMA_HLX.SMA_SUMMARY@KNOXHLXPRD
 	avg(NE_COUNT) AVG_INSTANCE_COUNT,
 	sysdate REC_CREATE_DATE,
 	sysdate LAST_UPDATE_DATE
-   from AUDIT_DB.GLTEFW_1@KNOX_IPHLXP
+   from AUDIT_DB.GLTEFW_1
   group by trunc(datetime,'MM'), LOCATION_GROUP;
 
---drop table AUDIT_DB.GLTEFW_1;
+drop table AUDIT_DB.GLTEFW_1;
